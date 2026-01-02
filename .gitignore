@@ -1,0 +1,50 @@
+# Exclude the apple-music-watch-viewer (it has its own git repo)
+apple-music-watch-viewer/
+
+# Apple Music source data (large files)
+*.csv
+*.json
+*.zip
+
+# Allow specific config/output files
+!package.json
+!vercel.json
+!tsconfig.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# Logs
+*.log
+
+# Node modules (if any)
+node_modules/
+
+# Apple data import folder (contains user data)
+apple-data-import/*.csv
+apple-data-import/*.json
+
+# Keep the README in apple-data-import
+!apple-data-import/README.md
