@@ -23,8 +23,9 @@ class WatchAlbumAnalyzer:
         self.container_details_path = container_details_path
         self.artist_mapping_path = artist_mapping_path
 
-        # Album to artist mapping
+        # Album to artist and genre mapping
         self.album_to_artist: Dict[str, str] = {}
+        self.album_to_genre: Dict[str, str] = {}
 
         # Data structures
         self.album_tracks: Dict[str, Set[str]] = defaultdict(set)
@@ -50,6 +51,7 @@ class WatchAlbumAnalyzer:
                     if row.get('Container Type') == 'ALBUM':
                         desc = row.get('Container Description', '')
                         artists_field = row.get('Artists', '')
+                        genres_field = row.get('Genres', '')
 
                         # Parse 'Artist - Album' format
                         if ' - ' in desc:
@@ -65,6 +67,10 @@ class WatchAlbumAnalyzer:
                             if album not in self.album_to_artist:
                                 self.album_to_artist[album] = artist
 
+                            # Store genre data
+                            if album not in self.album_to_genre and genres_field:
+                                self.album_to_genre[album] = genres_field.strip()
+
                         # Also try the Artists field if available and desc parsing failed
                         elif artists_field and desc:
                             # Use desc as album name and Artists field as artist
@@ -75,7 +81,12 @@ class WatchAlbumAnalyzer:
                             if album not in self.album_to_artist:
                                 self.album_to_artist[album] = artists_field.strip()
 
+                            # Store genre data
+                            if album not in self.album_to_genre and genres_field:
+                                self.album_to_genre[album] = genres_field.strip()
+
             print(f"  Loaded {len(self.album_to_artist)} albums with artist information")
+            print(f"  Loaded {len(self.album_to_genre)} albums with genre information")
 
         except FileNotFoundError:
             print(f"  Warning: Could not find '{self.container_details_path}'")
@@ -225,12 +236,14 @@ class WatchAlbumAnalyzer:
             if completion_percentage < 50:
                 continue
 
-            # Get artist from mapping
+            # Get artist and genre from mapping
             artist_name = self.album_to_artist.get(album_name, '')
+            genre_name = self.album_to_genre.get(album_name, '')
 
             watch_list.append({
                 'album_name': album_name,
                 'artist_name': artist_name,
+                'genre': genre_name,
                 'total_tracks': total_tracks,
                 'listened_tracks': listened_tracks,
                 'completion_percentage': round(completion_percentage, 1),
