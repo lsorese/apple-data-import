@@ -236,7 +236,8 @@ class WatchAlbumAnalyzer:
                 'completion_percentage': round(completion_percentage, 1),
                 'play_count': self.album_play_counts[album_name],
                 'first_listen': self.album_first_listen.get(album_name, ''),
-                'last_listen': self.album_last_listen.get(album_name, '')
+                'last_listen': self.album_last_listen.get(album_name, ''),
+                'starred': False
             })
 
         # Sort by play count (desc)
@@ -249,6 +250,25 @@ class WatchAlbumAnalyzer:
         print("\nGenerating report...")
 
         watch_albums = self.get_watch_albums()
+
+        # Load existing starred states if data.json exists
+        existing_starred = {}
+        try:
+            import os
+            if os.path.exists(output_path):
+                with open(output_path, 'r', encoding='utf-8') as f:
+                    existing_data = json.load(f)
+                    for album in existing_data.get('watch_albums', []):
+                        if album.get('starred'):
+                            existing_starred[album['album_name']] = True
+                print(f"  Preserving {len(existing_starred)} starred albums from existing data")
+        except Exception as e:
+            print(f"  Note: Could not load existing starred states: {e}")
+
+        # Apply existing starred states to new albums
+        for album in watch_albums:
+            if album['album_name'] in existing_starred:
+                album['starred'] = True
 
         # Count how many have artist info
         with_artist = sum(1 for album in watch_albums if album['artist_name'])
