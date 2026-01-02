@@ -251,24 +251,38 @@ class WatchAlbumAnalyzer:
 
         watch_albums = self.get_watch_albums()
 
-        # Load existing starred states if data.json exists
+        # Load existing starred states and dates if data.json exists
         existing_starred = {}
+        existing_dates = {}
         try:
             import os
             if os.path.exists(output_path):
                 with open(output_path, 'r', encoding='utf-8') as f:
                     existing_data = json.load(f)
                     for album in existing_data.get('watch_albums', []):
+                        album_name = album.get('album_name')
                         if album.get('starred'):
-                            existing_starred[album['album_name']] = True
+                            existing_starred[album_name] = True
+                        # Preserve existing dates (in case they've been manually corrected)
+                        if album.get('first_listen') or album.get('last_listen'):
+                            existing_dates[album_name] = {
+                                'first_listen': album.get('first_listen', ''),
+                                'last_listen': album.get('last_listen', '')
+                            }
                 print(f"  Preserving {len(existing_starred)} starred albums from existing data")
+                print(f"  Preserving dates for {len(existing_dates)} albums from existing data")
         except Exception as e:
-            print(f"  Note: Could not load existing starred states: {e}")
+            print(f"  Note: Could not load existing data: {e}")
 
-        # Apply existing starred states to new albums
+        # Apply existing starred states and dates to new albums
         for album in watch_albums:
-            if album['album_name'] in existing_starred:
+            album_name = album['album_name']
+            if album_name in existing_starred:
                 album['starred'] = True
+            # Prefer existing dates over newly calculated ones (to preserve manual corrections)
+            if album_name in existing_dates:
+                album['first_listen'] = existing_dates[album_name]['first_listen']
+                album['last_listen'] = existing_dates[album_name]['last_listen']
 
         # Count how many have artist info
         with_artist = sum(1 for album in watch_albums if album['artist_name'])
